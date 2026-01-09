@@ -1,6 +1,5 @@
 // lib/models/place_model.dart
 
-import '../config/constants.dart';
 
 class PlaceModel {
   final String id;

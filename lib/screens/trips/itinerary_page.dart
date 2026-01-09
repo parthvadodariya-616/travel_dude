@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import '../../models/trip_model.dart';
 import '../../services/firebase/firestore_service.dart';
-import '../../utils/helpers.dart';
 import '../../widgets/loading_widget.dart';
 import 'add_activity_page.dart';
 

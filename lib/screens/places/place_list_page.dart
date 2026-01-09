@@ -11,7 +11,6 @@ import '../../utils/helpers.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/place_card.dart'; // Import Global Nav
 
-import '../home/home_page.dart';
 import 'place_detail_page.dart';
 
 class PlaceListPage extends StatefulWidget {
