@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "849111399996",
+    "firebase_url": "https://smart-travel-planner-app-7015-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "smart-travel-planner-app-7015",
+    "storage_bucket": "smart-travel-planner-app-7015.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:849111399996:android:5bf509a2c8d8ba99598d39",
+        "android_client_info": {
+          "package_name": "com.parth.io.task.smart_travel_planner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "849111399996-famfgp6mo6j1tu74frj7ra51cp2kb740.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.parth.io.task.smart_travel_planner",
+            "certificate_hash": "aa230907554950490df50027b748d4ec1b179e7d"
+          }
+        },
+        {
+          "client_id": "849111399996-vnmch267ntjbprbp5i5dem61khpgmgug.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBX64V_3teUPMCtjjbaMSPI0q6V-SmxRdk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "849111399996-vnmch267ntjbprbp5i5dem61khpgmgug.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "849111399996-3qjjknbtsrf6dne0jgvtu35tsvk16aqg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.parth.io.task.smartTravelPlanner"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

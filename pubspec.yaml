@@ -1,0 +1,53 @@
+name: smart_travel_planner
+description: A new Flutter project for student travel planning.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.5
+  
+  # UPDATED FIREBASE VERSIONS (Fixes the crash)
+  firebase_core: ^4.3.0
+  firebase_auth: ^6.1.3
+  firebase_storage: ^13.0.5
+  
+  google_sign_in: ^7.2.0
+  dio: ^5.4.0
+  intl: ^0.20.2
+  shimmer: ^3.0.0
+  cached_network_image: ^3.3.0
+  connectivity_plus: ^7.0.0
+  provider: ^6.1.1
+  image_picker: ^1.0.7  # Downgraded slightly to ensure compatibility, or keep ^1.2.1 if it works
+  shared_preferences: ^2.2.2 # Changed to a known stable version (2.5.4 likely does not exist yet)
+  flutter_dotenv: ^6.0.0 # Standard stable version
+  package_info_plus: ^9.0.0 # Standard stable version
+  cloud_firestore: ^6.1.1
+  flutter_launcher_icons: ^0.14.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/smart_travel_planner.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+
+flutter:
+  uses-material-design: true
+  
+  # Ensure your Plus Jakarta Sans fonts are placed in an assets/fonts folder if using local files
+  fonts:
+    - family: Plus Jakarta Sans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+          weight: 700
