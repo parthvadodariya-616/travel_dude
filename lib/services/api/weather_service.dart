@@ -18,7 +18,7 @@ class WeatherService {
         );
 
   // Get current weather by city name
-  Future<WeatherModel?> getWeatherByCity(String cityName) async {
+  Future<WeatherModel?> getWeatherByCityName(String cityName) async {
     try {
       Helpers.log('Getting weather for: $cityName', tag: 'WEATHER');
 
@@ -34,10 +34,11 @@ class WeatherService {
       return null;
     } on DioException catch (e) {
       Helpers.log('Error getting weather: ${e.message}', tag: 'WEATHER');
-      throw _handleError(e);
+      // Return null so UI can handle it (e.g. show "No weather data")
+      return null; 
     } catch (e) {
       Helpers.log('Unexpected error: $e', tag: 'WEATHER');
-      throw 'Failed to get weather data';
+      return null;
     }
   }
 
@@ -62,10 +63,10 @@ class WeatherService {
       return null;
     } on DioException catch (e) {
       Helpers.log('Error getting weather: ${e.message}', tag: 'WEATHER');
-      throw _handleError(e);
+      return null;
     } catch (e) {
       Helpers.log('Unexpected error: $e', tag: 'WEATHER');
-      throw 'Failed to get weather data';
+      return null;
     }
   }
 
@@ -92,26 +93,10 @@ class WeatherService {
       return [];
     } on DioException catch (e) {
       Helpers.log('Error getting forecast: ${e.message}', tag: 'WEATHER');
-      throw _handleError(e);
+      return [];
     } catch (e) {
       Helpers.log('Unexpected error: $e', tag: 'WEATHER');
-      throw 'Failed to get weather forecast';
+      return [];
     }
-  }
-
-  // Handle errors
-  String _handleError(DioException e) {
-    if (e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout) {
-      return 'Request timeout. Please try again.';
-    } else if (e.type == DioExceptionType.badResponse) {
-      if (e.response?.statusCode == 404) {
-        return 'City not found. Please check the spelling.';
-      }
-      return 'Server error. Please try again later.';
-    } else if (e.type == DioExceptionType.unknown) {
-      return 'No internet connection.';
-    }
-    return 'Something went wrong. Please try again.';
   }
 }

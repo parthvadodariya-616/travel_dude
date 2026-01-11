@@ -7,7 +7,7 @@ class WeatherModel {
   final String weatherCondition;
   final int humidity;
   final double windSpeed;
-  final String icon;
+  final String icon; // Icon code like '01d' or '01n'
   final DateTime timestamp;
 
   WeatherModel({
@@ -21,7 +21,6 @@ class WeatherModel {
     required this.timestamp,
   });
 
-  // From JSON (OpenWeather API)
   factory WeatherModel.fromOpenWeatherJson(Map<String, dynamic> json) {
     return WeatherModel(
       cityName: json['name'] ?? '',
@@ -35,7 +34,6 @@ class WeatherModel {
     );
   }
 
-  // From JSON (Firebase/Local)
   factory WeatherModel.fromJson(Map<String, dynamic> json) {
     return WeatherModel(
       cityName: json['cityName'] ?? '',
@@ -51,7 +49,6 @@ class WeatherModel {
     );
   }
 
-  // To JSON
   Map<String, dynamic> toJson() {
     return {
       'cityName': cityName,
@@ -65,67 +62,29 @@ class WeatherModel {
     };
   }
 
-  // Get temperature in Celsius
   int get temperatureCelsius => temperature.round();
 
-  // Get temperature in Fahrenheit
-  int get temperatureFahrenheit => ((temperature * 9 / 5) + 32).round();
-
-  // Get weather icon URL
   String get iconUrl => 'https://openweathermap.org/img/wn/$icon@2x.png';
 
-  // Get weather emoji
+  // Dynamic emoji based on OpenWeather icon code
+  // d = day, n = night
   String get weatherEmoji {
-    switch (weatherCondition.toLowerCase()) {
-      case 'clear':
-        return '☀️';
-      case 'clouds':
-        return '☁️';
-      case 'rain':
-      case 'drizzle':
-        return '🌧️';
-      case 'thunderstorm':
-        return '⛈️';
-      case 'snow':
-        return '❄️';
-      case 'mist':
-      case 'fog':
-        return '🌫️';
-      default:
-        return '🌤️';
-    }
+    if (icon == '01d') return '☀️'; // Clear sky day
+    if (icon == '01n') return '🌙'; // Clear sky night
+    if (icon == '02d') return 'zk🌤️'; // Few clouds day
+    if (icon == '02n') return '☁️'; // Few clouds night
+    if (icon == '03d' || icon == '03n') return '☁️'; // Scattered clouds
+    if (icon == '04d' || icon == '04n') return '☁️'; // Broken clouds
+    if (icon == '09d' || icon == '09n') return '🌧️'; // Shower rain
+    if (icon == '10d') return '🌦️'; // Rain day
+    if (icon == '10n') return '🌧️'; // Rain night
+    if (icon == '11d' || icon == '11n') return '⛈️'; // Thunderstorm
+    if (icon == '13d' || icon == '13n') return '❄️'; // Snow
+    if (icon == '50d' || icon == '50n') return '🌫️'; // Mist
+    return '🌈'; // Default
   }
 
-  // Get formatted description
   String get formattedDescription {
     return '${description[0].toUpperCase()}${description.substring(1)}';
-  }
-
-  // Copy with
-  WeatherModel copyWith({
-    String? cityName,
-    double? temperature,
-    String? description,
-    String? weatherCondition,
-    int? humidity,
-    double? windSpeed,
-    String? icon,
-    DateTime? timestamp,
-  }) {
-    return WeatherModel(
-      cityName: cityName ?? this.cityName,
-      temperature: temperature ?? this.temperature,
-      description: description ?? this.description,
-      weatherCondition: weatherCondition ?? this.weatherCondition,
-      humidity: humidity ?? this.humidity,
-      windSpeed: windSpeed ?? this.windSpeed,
-      icon: icon ?? this.icon,
-      timestamp: timestamp ?? this.timestamp,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'WeatherModel(city: $cityName, temp: ${temperatureCelsius}°C, condition: $weatherCondition)';
   }
 }
