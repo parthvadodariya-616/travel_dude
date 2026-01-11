@@ -29,6 +29,9 @@ dependencies:
   package_info_plus: ^9.0.0 # Standard stable version
   cloud_firestore: ^6.1.1
   flutter_launcher_icons: ^0.14.4
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
