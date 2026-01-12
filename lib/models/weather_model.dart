@@ -69,22 +69,31 @@ class WeatherModel {
   // Dynamic emoji based on OpenWeather icon code
   // d = day, n = night
   String get weatherEmoji {
-    if (icon == '01d') return '☀️'; // Clear sky day
-    if (icon == '01n') return '🌙'; // Clear sky night
-    if (icon == '02d') return 'zk🌤️'; // Few clouds day
-    if (icon == '02n') return '☁️'; // Few clouds night
-    if (icon == '03d' || icon == '03n') return '☁️'; // Scattered clouds
-    if (icon == '04d' || icon == '04n') return '☁️'; // Broken clouds
-    if (icon == '09d' || icon == '09n') return '🌧️'; // Shower rain
-    if (icon == '10d') return '🌦️'; // Rain day
-    if (icon == '10n') return '🌧️'; // Rain night
-    if (icon == '11d' || icon == '11n') return '⛈️'; // Thunderstorm
-    if (icon == '13d' || icon == '13n') return '❄️'; // Snow
-    if (icon == '50d' || icon == '50n') return '🌫️'; // Mist
-    return '🌈'; // Default
+    switch (icon) {
+      case '01d': return '☀️'; // Clear sky day
+      case '01n': return '🌙'; // Clear sky night
+      case '02d': return '🌤️'; // Few clouds day (FIXED typo here)
+      case '02n': return '☁️'; // Few clouds night
+      case '03d':
+      case '03n': return '☁️'; // Scattered clouds
+      case '04d':
+      case '04n': return '☁️'; // Broken clouds
+      case '09d':
+      case '09n': return '🌧️'; // Shower rain
+      case '10d': return '🌦️'; // Rain day
+      case '10n': return '🌧️'; // Rain night
+      case '11d':
+      case '11n': return '⛈️'; // Thunderstorm
+      case '13d':
+      case '13n': return '❄️'; // Snow
+      case '50d':
+      case '50n': return '🌫️'; // Mist
+      default: return '🌈';
+    }
   }
 
   String get formattedDescription {
+    if (description.isEmpty) return '';
     return '${description[0].toUpperCase()}${description.substring(1)}';
   }
 }
