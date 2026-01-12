@@ -9,7 +9,7 @@ import '../../services/api/weather_service.dart';
 import '../../models/weather_model.dart';
 import '../../utils/helpers.dart';
 import '../../widgets/loading_widget.dart';
-import 'add_activity_page.dart'; // Correct import
+import 'add_activity_page.dart';
 
 class ItineraryPage extends StatefulWidget {
   final String tripId;
@@ -90,7 +90,6 @@ class _ItineraryPageState extends State<ItineraryPage> {
   }
 
   Future<void> _addActivity(int dayNumber) async {
-    // Navigates to the updated AddActivityPage (which now contains the new UI)
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -117,7 +116,6 @@ class _ItineraryPageState extends State<ItineraryPage> {
         final updatedItinerary = [..._trip!.itinerary];
         updatedItinerary[dayIndex] = updatedDay;
         
-        // Update Trip image if user selected a nice place and trip has no image
         String? newImageUrl = _trip!.imageUrl;
         if (place?.imageUrl != null && (newImageUrl == null || newImageUrl.isEmpty)) {
            newImageUrl = place!.imageUrl;
@@ -133,7 +131,6 @@ class _ItineraryPageState extends State<ItineraryPage> {
           await _firestoreService.updateTrip(updatedTrip);
           if (mounted) {
             setState(() => _trip = updatedTrip);
-            // Refresh weather for this day
             if (place != null) {
                _weatherService.getWeatherByCityName(place.name).then((w) {
                  if (mounted && w != null) {
@@ -182,7 +179,9 @@ class _ItineraryPageState extends State<ItineraryPage> {
                     _buildHeroCard(isDark, primaryColor, textSubColor),
                     const SizedBox(height: 24),
                     ..._trip!.itinerary.map((day) {
-                      final dayWeather = _dailyWeather[day.dayNumber] ?? _tripWeather;
+                      // FIX: Only show weather if specific data exists for this day.
+                      // Removed fallback '?? _tripWeather' to prevent showing general weather on empty days.
+                      final dayWeather = _dailyWeather[day.dayNumber];
                       
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16),
@@ -190,8 +189,9 @@ class _ItineraryPageState extends State<ItineraryPage> {
                           dayNumber: day.dayNumber,
                           dayLabel: 'Day ${day.dayNumber}',
                           date: day.date,
-                          // Use the new dynamic emoji property
-                          weatherEmoji: dayWeather?.weatherEmoji ?? '☁️', 
+                          // If no weather, show empty string instead of default cloud
+                          weatherEmoji: dayWeather?.weatherEmoji ?? '', 
+                          // If no weather, show '--'
                           temperature: dayWeather != null ? '${dayWeather.temperatureCelsius}°C' : '--',
                           weatherColor: Colors.orange,
                           events: day.events,
@@ -325,7 +325,7 @@ class _ItineraryPageState extends State<ItineraryPage> {
     required int dayNumber,
     required String dayLabel,
     required String date,
-    required String weatherEmoji, // Changed from IconData
+    required String weatherEmoji,
     required String temperature,
     required Color weatherColor,
     required List<ItineraryEvent> events,
@@ -381,8 +381,11 @@ class _ItineraryPageState extends State<ItineraryPage> {
                   ),
                   child: Row(
                     children: [
-                      Text(weatherEmoji, style: const TextStyle(fontSize: 18)), // Display Emoji
-                      const SizedBox(width: 6),
+                      // Only show emoji if we have one
+                      if (weatherEmoji.isNotEmpty) ...[
+                        Text(weatherEmoji, style: const TextStyle(fontSize: 18)),
+                        const SizedBox(width: 6),
+                      ],
                       Text(temperature, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: weatherColor)),
                     ],
                   ),
