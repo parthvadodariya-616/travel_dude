@@ -9,7 +9,7 @@ import '../../providers/place_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/helpers.dart';
 import '../../widgets/loading_widget.dart';
-import '../../widgets/place_card.dart'; // Import Global Nav
+import '../../widgets/place_card.dart'; 
 
 import 'place_detail_page.dart';
 
@@ -39,11 +39,14 @@ class _PlaceListPageState extends State<PlaceListPage> {
         placeProvider.loadBookmarks(authProvider.user!.id);
       }
 
+      // Handle the landing logic
       if (widget.initialQuery != null) {
         _searchController.text = widget.initialQuery!;
         placeProvider.searchPlaces(widget.initialQuery!);
       } else {
-        if (placeProvider.places.isEmpty) {
+        // FIX: Check searchResults, not popularPlaces, to ensure this page 
+        // has its own data regardless of what the home page loaded.
+        if (placeProvider.searchResults.isEmpty) {
            placeProvider.searchPlaces("Tourist Attraction");
         }
       }
@@ -53,8 +56,9 @@ class _PlaceListPageState extends State<PlaceListPage> {
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 1000), () {
-      if (query.length > 2) {
-        Provider.of<PlaceProvider>(context, listen: false).searchPlaces(query);
+      if (query.trim().length >= 3) {
+        // This updates searchResults list only
+        Provider.of<PlaceProvider>(context, listen: false).searchPlaces(query.trim());
       }
     });
   }
@@ -118,6 +122,8 @@ class _PlaceListPageState extends State<PlaceListPage> {
                            if (Provider.of<AuthProvider>(context, listen: false).user != null) {
                              placeProvider.loadBookmarks(Provider.of<AuthProvider>(context, listen: false).user!.id);
                            }
+                           // Force refresh the results for this page
+                           placeProvider.searchPlaces(_searchController.text.isNotEmpty ? _searchController.text : "Tourist Attraction");
                         },
                         icon: Icon(Icons.refresh, color: primaryColor),
                       ),
@@ -149,7 +155,7 @@ class _PlaceListPageState extends State<PlaceListPage> {
                               contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                             ),
                             onSubmitted: (value) {
-                               if(value.isNotEmpty) placeProvider.searchPlaces(value);
+                               if(value.trim().isNotEmpty) placeProvider.searchPlaces(value.trim());
                             },
                           ),
                         ),
@@ -161,7 +167,9 @@ class _PlaceListPageState extends State<PlaceListPage> {
                         else
                           IconButton(
                             onPressed: () {
-                              if (_searchController.text.isNotEmpty) placeProvider.searchPlaces(_searchController.text);
+                              if (_searchController.text.trim().isNotEmpty) {
+                                placeProvider.searchPlaces(_searchController.text.trim());
+                              }
                             },
                             icon: Icon(Icons.send, color: primaryColor, size: 20),
                           ),
@@ -214,24 +222,17 @@ class _PlaceListPageState extends State<PlaceListPage> {
           ],
         ),
       ),
-      // Use Global Bottom Nav Bar
       bottomNavigationBar: const BottomNavBar(currentIndex: 2),
     );
   }
 
   Widget _buildContent(PlaceProvider placeProvider, bool isDark, Color primaryColor, Color textMainColor, Color textSubColor) {
-    if (placeProvider.isLoading && placeProvider.places.isEmpty) {
+    // Isolated list used here to prevent home page suggestions from appearing
+    if (placeProvider.isLoading && placeProvider.searchResults.isEmpty) {
       return ListShimmer(shimmerItem: const PlaceCardShimmer(), itemCount: 5);
     }
 
-    if (placeProvider.error != null) {
-      return ErrorDisplayWidget(
-        message: placeProvider.error!, 
-        onRetry: () => placeProvider.searchPlaces(_searchController.text.isNotEmpty ? _searchController.text : "Tourist Attraction")
-      );
-    }
-
-    if (placeProvider.places.isEmpty) {
+    if (placeProvider.searchResults.isEmpty) {
       return EmptyStateWidget(
         icon: Icons.travel_explore,
         title: 'No Places Found',
@@ -246,9 +247,9 @@ class _PlaceListPageState extends State<PlaceListPage> {
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      itemCount: placeProvider.places.length,
+      itemCount: placeProvider.searchResults.length,
       itemBuilder: (context, index) {
-        final place = placeProvider.places[index];
+        final place = placeProvider.searchResults[index];
         final isBookmarked = placeProvider.isBookmarked(place.id);
         return PlaceCard(
           place: place,
