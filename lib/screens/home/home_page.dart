@@ -1,5 +1,6 @@
 // lib/screens/home/home_page.dart
 
+import 'dart:async'; // Required for Timer
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_travel_planner/widgets/bottom_nav.dart';
@@ -18,25 +19,40 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Removed _selectedIndex as it is handled by BottomNavBar widget
   final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce; // For debouncing the search
+  bool _showSuggestions = false; // Controls the visibility of the dropdown
   
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Fetch popular places on init
-      Provider.of<PlaceProvider>(context, listen: false).searchPlaces('Tourist Attraction');
+      // Use the new isolated method to load default popular places
+      Provider.of<PlaceProvider>(context, listen: false).loadPopularPlaces();
     });
   }
 
-  // _onBottomNavTapped is handled by the global BottomNavBar widget
+  // New parameter-driven logic: Debounce and 3-character limit
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    if (query.trim().length >= 3) {
+      _debounce = Timer(const Duration(milliseconds: 600), () {
+        setState(() => _showSuggestions = true);
+        // Call searchSuggestions to update the isolated suggestions list
+        Provider.of<PlaceProvider>(context, listen: false).searchSuggestions(query.trim());
+      });
+    } else {
+      setState(() => _showSuggestions = false);
+    }
+  }
 
   void _handleSearch(String query) {
     if (query.trim().isEmpty) {
       Helpers.showSnackBar(context, 'Please enter a destination', isError: true);
       return;
     }
+    setState(() => _showSuggestions = false); // Hide dropdown on submit
     Navigator.push(
       context, 
       MaterialPageRoute(builder: (_) => PlaceListPage(initialQuery: query.trim()))
@@ -46,6 +62,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _debounce?.cancel(); // Clean up the timer
     super.dispose();
   }
 
@@ -53,10 +70,10 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final placeProvider = Provider.of<PlaceProvider>(context);
     
-    // Take top 8 places for the popular section
-    final List<PlaceModel> _popularPlaces = placeProvider.places.take(8).toList();
-    final bool _isLoading = placeProvider.isLoading;
-    final String? _error = placeProvider.error; // Use actual error from provider
+    // Parameters updated to use isolated lists from the provider
+    final List<PlaceModel> popularPlaces = placeProvider.popularPlaces;
+    final bool isLoading = placeProvider.isLoading;
+    final String? error = placeProvider.error;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = const Color(0xFF13DAEC);
@@ -105,13 +122,13 @@ class _HomePageState extends State<HomePage> {
             // Scrollable Content
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () async => await Provider.of<PlaceProvider>(context, listen: false).searchPlaces('Tourist Attraction'),
+                onRefresh: () async => await Provider.of<PlaceProvider>(context, listen: false).loadPopularPlaces(),
                 color: primaryColor,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(
                     children: [
-                      // Hero Image
+                      // Hero Image Section
                       Padding(
                         padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                         child: Container(
@@ -174,37 +191,74 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
 
-                      // Search Bar
+                      // Search Input with Suggestions Dropdown
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                        child: Container(
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: surfaceColor,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 4))],
-                          ),
-                          child: Row(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: 16, right: 8),
-                                child: Icon(Icons.search, color: primaryColor, size: 24),
+                        child: Column(
+                          children: [
+                            Container(
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: surfaceColor,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 4))],
                               ),
-                              Expanded(
-                                child: TextField(
-                                  controller: _searchController,
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: textMainColor),
-                                  decoration: InputDecoration(
-                                    hintText: 'London, Tokyo, New York...',
-                                    hintStyle: TextStyle(color: textSubColor.withOpacity(0.7)),
-                                    border: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 16, right: 8),
+                                    child: Icon(Icons.search, color: primaryColor, size: 24),
                                   ),
-                                  onSubmitted: _handleSearch,
-                                ),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _searchController,
+                                      onChanged: _onSearchChanged, // Calls new logic
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: textMainColor),
+                                      decoration: InputDecoration(
+                                        hintText: 'London, Tokyo, New York...',
+                                        hintStyle: TextStyle(color: textSubColor.withOpacity(0.7)),
+                                        border: InputBorder.none,
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                                      ),
+                                      onSubmitted: _handleSearch,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+
+                            // Suggestions List (Uses isolated suggestions list)
+                            if (_showSuggestions && _searchController.text.length >= 3)
+                              Container(
+                                margin: const EdgeInsets.only(top: 4),
+                                constraints: const BoxConstraints(maxHeight: 250),
+                                decoration: BoxDecoration(
+                                  color: surfaceColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
+                                ),
+                                child: placeProvider.isLoading 
+                                  ? const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()))
+                                  : ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: placeProvider.suggestions.length,
+                                      itemBuilder: (context, index) {
+                                        final place = placeProvider.suggestions[index];
+                                        return ListTile(
+                                          leading: const Icon(Icons.location_on_outlined, size: 20),
+                                          title: Text(place.name, style: TextStyle(color: textMainColor, fontSize: 14, fontWeight: FontWeight.w600)),
+                                          subtitle: Text(place.location, style: const TextStyle(fontSize: 12)),
+                                          onTap: () {
+                                            setState(() => _showSuggestions = false);
+                                            Navigator.push(context, MaterialPageRoute(
+                                              builder: (_) => PlaceDetailPage(place: place)
+                                            ));
+                                          },
+                                        );
+                                      },
+                                    ),
+                              ),
+                          ],
                         ),
                       ),
 
@@ -220,7 +274,6 @@ class _HomePageState extends State<HomePage> {
                               backgroundColor: primaryColor,
                               foregroundColor: const Color(0xFF0D1A1B),
                               elevation: 0,
-                              shadowColor: primaryColor.withOpacity(0.3),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             child: const Text('Search Destinations', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
@@ -235,7 +288,7 @@ class _HomePageState extends State<HomePage> {
                         child: Text('or browse all destinations', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: primaryColor)),
                       ),
 
-                      // Popular Now Section
+                      // Popular Now Section (Now static while searching)
                       Padding(
                         padding: const EdgeInsets.only(top: 24, left: 24, right: 24),
                         child: Column(
@@ -250,12 +303,12 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.refresh, color: primaryColor),
-                                  onPressed: () => Provider.of<PlaceProvider>(context, listen: false).searchPlaces('Tourist Attraction'),
+                                  onPressed: () => Provider.of<PlaceProvider>(context, listen: false).loadPopularPlaces(),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 12),
-                            _buildPopularSection(isDark, primaryColor, surfaceColor, textMainColor, _popularPlaces, _isLoading, _error),
+                            _buildPopularSection(isDark, primaryColor, surfaceColor, textMainColor, popularPlaces, isLoading, error),
                           ],
                         ),
                       ),
@@ -268,13 +321,12 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      // Use Global Bottom Nav Bar (index 0 for Home)
       bottomNavigationBar: const BottomNavBar(currentIndex: 0),
     );
   }
 
   Widget _buildPopularSection(bool isDark, Color primaryColor, Color surfaceColor, Color textMainColor, List<PlaceModel> popularPlaces, bool isLoading, String? error) {
-    if (isLoading) {
+    if (isLoading && popularPlaces.isEmpty) {
       return SizedBox(
         height: 60,
         child: ListView.builder(
@@ -288,17 +340,15 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    if (error != null) return Text(error, style: TextStyle(color: Colors.red[700]));
-
-    final placesToShow = popularPlaces.isNotEmpty ? popularPlaces : []; 
+    if (error != null && popularPlaces.isEmpty) return Text(error, style: TextStyle(color: Colors.red[700]));
 
     return SizedBox(
       height: 60,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: placesToShow.length,
+        itemCount: popularPlaces.length,
         itemBuilder: (ctx, index) {
-          final place = placesToShow[index];
+          final place = popularPlaces[index];
           return _buildChip(
             place.name,
             primaryColor,

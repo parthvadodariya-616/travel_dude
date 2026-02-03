@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_map/flutter_map.dart'; 
 import 'package:latlong2/latlong.dart'; 
-import 'package:url_launcher/url_launcher.dart'; // Required for opening external maps
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/place_model.dart';
 import '../../models/weather_model.dart';
 import '../../services/api/weather_service.dart';
+import '../../utils/helpers.dart';
 import '../trips/create_trip_page.dart';
 
 class PlaceDetailPage extends StatefulWidget {
@@ -26,7 +27,6 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
   bool isFavorite = false;
   bool isExpanded = false;
 
-  // Track map theme state
   bool _isSatelliteView = false;
 
   @override
@@ -52,27 +52,31 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
           _isLoadingWeather = false;
         });
       }
-      print("Error loading weather: $e");
+      Helpers.log("Error loading weather: $e", tag: 'WEATHER');
     }
   }
 
-  // --- NEW: Helper to Open Google Maps ---
-  Future<void> _openGoogleMaps() async {
-    final double lat = widget.place.latitude;
-    final double lng = widget.place.longitude;
-    // Uses the universal Google Maps URL format (works on Android/iOS/Web)
-    final Uri googleMapsUrl = Uri.parse(
-        'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng');
+  // --- FIXED: Reliable Method to Open Google Maps ---
+ Future<void> _openGoogleMaps() async {
+  // Construct the search query using name and address/location
+  final String query = Uri.encodeComponent("${widget.place.name}, ${widget.place.location}");
+  
+  // Use the Google Maps Search API URL
+  final String googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$query";
+  final Uri uri = Uri.parse(googleMapsUrl);
 
-    if (await canLaunchUrl(googleMapsUrl)) {
-      await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+  try {
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      // Fallback: Could show a snackbar here if desired
-      print('Could not launch Google Maps');
+      if (mounted) {
+        Helpers.showSnackBar(context, 'Could not launch Google Maps', isError: true);
+      }
     }
+  } catch (e) {
+    Helpers.log('Error launching maps: $e', tag: 'MAPS');
   }
-
-  // --- MAP FUNCTIONALITY ---
+}
   void _showMap() {
     showModalBottomSheet(
       context: context,
@@ -80,7 +84,6 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
       enableDrag: false, 
       backgroundColor: Colors.transparent,
       builder: (context) {
-        // Use StatefulBuilder to handle local state (Theme Switching) inside the modal
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             return Container(
@@ -91,7 +94,6 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
               ),
               child: Column(
                 children: [
-                  // Handle Bar
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 12),
                     width: 40,
@@ -101,7 +103,6 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  // Header
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
@@ -141,7 +142,6 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                     ),
                   ),
                   
-                  // The Map with Overlaid Buttons
                   Expanded(
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
@@ -151,20 +151,16 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                             options: MapOptions(
                               initialCenter: LatLng(widget.place.latitude, widget.place.longitude),
                               initialZoom: 15.0,
-                              minZoom: 3.0,
-                              maxZoom: 18.0,
                               interactionOptions: const InteractionOptions(
                                 flags: InteractiveFlag.all,
                               ),
                             ),
                             children: [
                               TileLayer(
-                                // Switch between OSM (Default) and Esri (Satellite)
                                 urlTemplate: _isSatelliteView
                                     ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
                                     : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                userAgentPackageName: 'com.smarttravelplanner.app',
-                                // Attribution for Satellite
+                                userAgentPackageName: 'com.parth.io.task.smartTravelPlanner',
                                 tileProvider: NetworkTileProvider(),
                               ),
                               MarkerLayer(
@@ -175,12 +171,12 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                                     height: 80,
                                     child: Column(
                                       children: [
-                                        Icon(
+                                        const Icon(
                                           Icons.location_on,
                                           color: Colors.redAccent,
                                           size: 40,
                                         ),
-                                        if (!_isSatelliteView) // Hide label in satellite if it's too cluttered
+                                        if (!_isSatelliteView)
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
@@ -200,22 +196,9 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                                   ),
                                 ],
                               ),
-                              // Copyright attribution (Good practice)
-                              Align(
-                                alignment: Alignment.bottomLeft,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  color: Colors.black.withOpacity(0.5),
-                                  child: Text(
-                                    _isSatelliteView ? 'Esri, Maxar, Earthstar Geographics' : '© OpenStreetMap contributors',
-                                    style: const TextStyle(color: Colors.white, fontSize: 8),
-                                  ),
-                                ),
-                              ),
                             ],
                           ),
 
-                          // --- BUTTON 1: Theme Switcher (Satellite/Default) ---
                           Positioned(
                             top: 16,
                             right: 16,
@@ -243,7 +226,6 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                // Label for the button (optional)
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
@@ -259,7 +241,6 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                             ),
                           ),
 
-                          // --- BUTTON 2: Get Directions (Google Maps) ---
                           Positioned(
                             bottom: 24,
                             right: 16,
@@ -286,7 +267,6 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Standard build method (same as before)
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = const Color(0xFF13DAEC);
     final backgroundColor = isDark ? const Color(0xFF102022) : const Color(0xFFF6F8F8);
@@ -307,23 +287,13 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                 leading: Padding(
                   padding: const EdgeInsets.only(left: 16, top: 8),
                   child: Container(
-                    width: 40,
-                    height: 40,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () => Navigator.pop(context),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
                 ),
@@ -331,27 +301,16 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                   Padding(
                     padding: const EdgeInsets.only(right: 16, top: 8),
                     child: Container(
-                      width: 40,
-                      height: 40,
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(20),
-                          onTap: () {
-                            setState(() {
-                              isFavorite = !isFavorite;
-                            });
-                          },
-                          child: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: Colors.white,
-                            size: 24,
-                          ),
+                      child: IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: Colors.white,
                         ),
+                        onPressed: () => setState(() => isFavorite = !isFavorite),
                       ),
                     ),
                   ),
@@ -366,13 +325,13 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                               fit: BoxFit.cover,
                               errorWidget: (context, url, error) => Container(
                                 color: primaryColor.withOpacity(0.2),
-                                child: Icon(Icons.photo, size: 80, color: primaryColor),
+                                child: const Icon(Icons.photo, size: 80, color: Color(0xFF13DAEC)),
                               ),
                               placeholder: (context, url) => Container(color: Colors.grey[300]),
                             )
                           : Container(
                               color: primaryColor.withOpacity(0.2),
-                              child: Icon(Icons.photo, size: 80, color: primaryColor),
+                              child: const Icon(Icons.photo, size: 80, color: Color(0xFF13DAEC)),
                             ),
                       Container(
                         decoration: BoxDecoration(
@@ -396,10 +355,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 6,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                               decoration: BoxDecoration(
                                 color: Colors.black.withOpacity(0.4),
                                 borderRadius: BorderRadius.circular(6),
@@ -407,18 +363,14 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    Icons.location_on,
-                                    size: 16,
-                                    color: primaryColor,
-                                  ),
+                                  const Icon(Icons.location_on, size: 16, color: Color(0xFF13DAEC)),
                                   const SizedBox(width: 4),
                                   Text(
                                     (widget.place.country ?? 'Unknown').toUpperCase(),
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
-                                      color: primaryColor,
+                                      color: Color(0xFF13DAEC),
                                       letterSpacing: 1.2,
                                     ),
                                   ),
@@ -433,58 +385,15 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
                                 height: 1.2,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black26,
-                                    offset: Offset(0, 2),
-                                    blurRadius: 4,
-                                  ),
-                                ],
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    widget.place.location,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.white.withOpacity(0.9),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                if (widget.place.rating != null) ...[
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                                    child: Container(
-                                      width: 4,
-                                      height: 4,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.6),
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.star,
-                                    size: 16,
-                                    color: Colors.amber,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    widget.place.rating!.toStringAsFixed(1),
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.amber,
-                                    ),
-                                  ),
-                                ],
-                              ],
+                            Text(
+                              widget.place.location,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
                             ),
                           ],
                         ),
@@ -533,9 +442,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF102022).withOpacity(0.8)
-                    : Colors.white.withOpacity(0.8),
+                color: backgroundColor.withOpacity(0.9),
                 border: Border(
                   top: BorderSide(
                     color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
@@ -544,57 +451,31 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                 ),
               ),
               child: SafeArea(
-                top: false,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () {
-                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CreateTripPage(initialPlace: widget.place),
-                              ),
-                            );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shadowColor: primaryColor.withOpacity(0.3),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CreateTripPage(initialPlace: widget.place),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.calendar_month, size: 20),
-                            SizedBox(width: 8),
-                            Text(
-                              'Add to Itinerary',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    const SizedBox(height: 16),
-                    Container(
-                      width: 100,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.grey[700] : Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.calendar_month, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text('Add to Itinerary', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -604,43 +485,16 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
     );
   }
 
-  // ... (Keep existing _buildWeatherWidget, _buildTagChips, _buildDescription, _buildBestTimeInfo)
   Widget _buildWeatherWidget(bool isDark, Color primaryColor, Color textMain, Color textSub) {
-    if (_isLoadingWeather) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_weather == null) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2C2E) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-            width: 1,
-          ),
-        ),
-        child: Text("Weather information unavailable", style: TextStyle(color: textSub)),
-      );
-    }
+    if (_isLoadingWeather) return const Center(child: CircularProgressIndicator());
+    if (_weather == null) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2C2E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
       ),
       child: Row(
         children: [
@@ -648,55 +502,14 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'CURRENT WEATHER',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    letterSpacing: 1.2,
-                  ),
-                ),
+                Text('CURRENT WEATHER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: textSub)),
                 const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      '${_weather!.temperatureCelsius}°C',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: textMain,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _weather!.formattedDescription,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textSub,
-                      ),
-                    ),
-                  ],
-                ),
+                Text('${_weather!.temperatureCelsius}°C', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: textMain)),
+                Text(_weather!.formattedDescription, style: TextStyle(fontSize: 14, color: textSub)),
               ],
             ),
           ),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: primaryColor.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                _weather!.weatherEmoji,
-                style: const TextStyle(fontSize: 24),
-              ),
-            ),
-          ),
+          Text(_weather!.weatherEmoji, style: const TextStyle(fontSize: 32)),
         ],
       ),
     );
@@ -705,59 +518,10 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
   Widget _buildTagChips(bool isDark, Color primaryColor, Color textMain, Color textSub) {
     return Wrap(
       spacing: 8,
-      runSpacing: 8,
       children: [
-        _buildChip(widget.place.category, Icons.category, primaryColor, true, isDark, textMain, textSub),
-        if (widget.place.priceRange != null)
-           _buildChip(widget.place.priceRange!, Icons.attach_money, Colors.grey, false, isDark, textMain, textSub),
+        Chip(label: Text(widget.place.category)),
+        if (widget.place.priceRange != null) Chip(label: Text(widget.place.priceRange!)),
       ],
-    );
-  }
-
-  Widget _buildChip(
-    String label,
-    IconData icon,
-    Color color,
-    bool isPrimary,
-    bool isDark,
-    Color textMain,
-    Color textSub,
-  ) {
-    final primaryColor = const Color(0xFF13DAEC);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: isPrimary
-            ? primaryColor.withOpacity(0.1)
-            : (isDark ? Colors.grey[800] : Colors.grey[100]),
-        border: isPrimary
-            ? Border.all(color: primaryColor.withOpacity(0.2), width: 1)
-            : null,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: isPrimary
-                ? primaryColor
-                : (isDark ? Colors.grey[300] : Colors.grey[600]),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isPrimary ? FontWeight.w700 : FontWeight.w500,
-              color: isPrimary
-                  ? primaryColor
-                  : (isDark ? Colors.grey[300] : Colors.grey[600]),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -765,50 +529,17 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'About',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: textMain,
-          ),
-        ),
+        Text('About', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textMain)),
         const SizedBox(height: 8),
         Text(
-          widget.place.description.isNotEmpty ? widget.place.description : 'No description available.',
-          style: TextStyle(
-            fontSize: 14,
-            height: 1.5,
-            color: textSub,
-          ),
+          widget.place.description,
           maxLines: isExpanded ? null : 3,
           overflow: isExpanded ? null : TextOverflow.ellipsis,
+          style: TextStyle(color: textSub),
         ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: () {
-            setState(() {
-              isExpanded = !isExpanded;
-            });
-          },
-          child: Row(
-            children: [
-              Text(
-                isExpanded ? 'Read less' : 'Read more',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: primaryColor,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                isExpanded ? Icons.expand_less : Icons.expand_more,
-                size: 16,
-                color: primaryColor,
-              ),
-            ],
-          ),
+        TextButton(
+          onPressed: () => setState(() => isExpanded = !isExpanded),
+          child: Text(isExpanded ? 'Read Less' : 'Read More'),
         ),
       ],
     );
@@ -818,81 +549,38 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
     return GestureDetector(
       onTap: _showMap,
       child: Container(
-        height: 140, 
+        height: 140,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          border: Border.all(color: Colors.grey.withOpacity(0.3)),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Stack(
-            fit: StackFit.expand,
             children: [
-              IgnorePointer(
-                child: FlutterMap(
-                  options: MapOptions(
-                    initialCenter: LatLng(widget.place.latitude, widget.place.longitude),
-                    initialZoom: 13.0, 
-                    interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.none,
-                    ),
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.smarttravelplanner.app',
-                    ),
-                    MarkerLayer(
-                      markers: [
-                         Marker(
-                          point: LatLng(widget.place.latitude, widget.place.longitude),
-                          width: 60,
-                          height: 60,
-                          child: Icon(
-                            Icons.location_on,
-                            color: primaryColor,
-                            size: 30,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+              FlutterMap(
+                options: MapOptions(
+                  initialCenter: LatLng(widget.place.latitude, widget.place.longitude),
+                  initialZoom: 13.0,
                 ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.parth.io.task.smartTravelPlanner',
+                  ),
+                ],
               ),
-              
               Center(
-                child: ElevatedButton.icon(
-                  onPressed: _showMap,
-                  icon: Icon(
-                    Icons.map,
-                    size: 18,
-                    color: primaryColor,
-                  ),
-                  label: Text(
-                    'View on Map',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : Colors.grey[900],
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? Colors.grey[800] : Colors.white,
-                    elevation: 8,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.map, color: Color(0xFF13DAEC)),
+                      SizedBox(width: 8),
+                      Text('View on Map', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                    ],
                   ),
                 ),
               ),
@@ -907,43 +595,15 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF152628) : Colors.grey[50],
+        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[100],
         borderRadius: BorderRadius.circular(8),
-        border: isDark
-            ? null
-            : Border.all(color: Colors.grey[200]!, width: 1),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            color: primaryColor,
-            size: 20,
-          ),
+          const Icon(Icons.info_outline, color: Color(0xFF13DAEC)),
           const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Best time to visit',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.grey[200] : Colors.grey[800],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Early morning around 7:00 AM to avoid crowds.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
+          const Expanded(
+            child: Text('Best time to visit: Early morning around 7:00 AM to avoid crowds.', style: TextStyle(fontSize: 12)),
           ),
         ],
       ),

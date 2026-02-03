@@ -526,7 +526,7 @@ class LocationSearchDelegate extends SearchDelegate<PlaceModel?> {
       builder: (context, placeProvider, child) {
         if (placeProvider.isLoading) return const Center(child: CircularProgressIndicator());
         
-        final results = placeProvider.places;
+        final results = placeProvider.popularPlaces;
         
         if (results.isEmpty) {
            return const Center(child: Text("Start typing to search..."));
