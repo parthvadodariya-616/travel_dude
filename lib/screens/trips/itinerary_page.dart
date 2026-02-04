@@ -179,9 +179,7 @@ class _ItineraryPageState extends State<ItineraryPage> {
                     _buildHeroCard(isDark, primaryColor, textSubColor),
                     const SizedBox(height: 24),
                     ..._trip!.itinerary.map((day) {
-                      // FIX: Only show weather if specific data exists for this day.
-                      // Removed fallback '?? _tripWeather' to prevent showing general weather on empty days.
-                      final dayWeather = _dailyWeather[day.dayNumber];
+                    final dayWeather = _dailyWeather[day.dayNumber];
                       
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16),
