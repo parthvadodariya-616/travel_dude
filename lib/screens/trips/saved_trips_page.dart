@@ -1,5 +1,3 @@
-// lib/screens/trips/saved_trips_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_travel_planner/widgets/bottom_nav.dart';
@@ -7,9 +5,6 @@ import '../../providers/trip_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/trip_card.dart';
 import '../../widgets/loading_widget.dart';
-
-// Import Global Nav
-
 import '../home/home_page.dart';
 import 'create_trip_page.dart';
 import 'itinerary_page.dart';
@@ -103,7 +98,6 @@ class _SavedTripsPageState extends State<SavedTripsPage> {
           ],
         ),
       ),
-      // Use Global Bottom Nav Bar
       bottomNavigationBar: const BottomNavBar(currentIndex: 1),
     );
   }
