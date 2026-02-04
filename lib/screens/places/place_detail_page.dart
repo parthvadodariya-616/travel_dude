@@ -288,7 +288,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                   padding: const EdgeInsets.only(left: 16, top: 8),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -439,18 +439,9 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
             bottom: 0,
             left: 0,
             right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: backgroundColor.withOpacity(0.9),
-                border: Border(
-                  top: BorderSide(
-                    color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: SafeArea(
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
                 child: SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -558,17 +549,19 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
           borderRadius: BorderRadius.circular(12),
           child: Stack(
             children: [
-              FlutterMap(
-                options: MapOptions(
-                  initialCenter: LatLng(widget.place.latitude, widget.place.longitude),
-                  initialZoom: 13.0,
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.parth.io.task.smartTravelPlanner',
+              IgnorePointer(
+                child: FlutterMap(
+                  options: MapOptions(
+                    initialCenter: LatLng(widget.place.latitude, widget.place.longitude),
+                    initialZoom: 13.0,
                   ),
-                ],
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.parth.io.task.smartTravelPlanner',
+                    ),
+                  ],
+                ),
               ),
               Center(
                 child: Container(
