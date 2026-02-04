@@ -43,12 +43,10 @@ class AuthService {
         );
 
         await _firestoreService.createUser(userModel);
-        print('✅ [AUTH] Basic Signup Success');
         return userModel;
       }
       return null;
     } catch (e) {
-      print('❌ [AUTH] Basic Signup Error: $e');
       throw e.toString();
     }
   }

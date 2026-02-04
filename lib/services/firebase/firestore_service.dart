@@ -12,7 +12,6 @@ class FirestoreService {
     try {
       await _db.collection(AppConstants.usersCollection).doc(user.id).set(user.toJson());
     } catch (e) {
-      print('🔥 ERROR Create User: $e');
       throw e;
     }
   }
@@ -23,7 +22,6 @@ class FirestoreService {
       if (doc.exists) return UserModel.fromJson(doc.data()!);
       return null;
     } catch (e) {
-      print('🔥 ERROR Get User: $e');
       return null;
     }
   }
@@ -40,26 +38,22 @@ class FirestoreService {
       final tripWithId = trip.copyWith(id: docRef.id);
       
       await docRef.set(tripWithId.toJson());
-      print('✅ Trip Saved with ID: ${docRef.id}');
       return docRef.id;
     } catch (e) {
-      print('🔥 ERROR Create Trip: $e');
       throw 'Failed to save trip: $e';
     }
   }
 
   Future<List<TripModel>> getUserTrips(String userId) async {
     try {
-      print('🔄 Fetching trips for user: $userId');
-      
+    
       // FIX: Removed .orderBy('createdAt') to prevent "Index Required" errors.
       // We will sort the results in Dart code instead.
       final snapshot = await _db.collection(AppConstants.tripsCollection)
           .where('userId', isEqualTo: userId)
           .get();
 
-      print('📥 Found ${snapshot.docs.length} documents');
-
+    
       final trips = snapshot.docs.map((d) {
         try {
           // Ensure ID is included
@@ -67,7 +61,7 @@ class FirestoreService {
           data['id'] = d.id; 
           return TripModel.fromJson(data);
         } catch (e) {
-          print('⚠️ Error parsing trip document ${d.id}: $e');
+          
           return null;
         }
       }).whereType<TripModel>().toList(); // Filter out failed parses
@@ -77,8 +71,7 @@ class FirestoreService {
       
       return trips;
     } catch (e) {
-      print('🔥 ERROR Get User Trips: $e');
-      throw e;
+       throw e;
     }
   }
 
@@ -92,7 +85,7 @@ class FirestoreService {
       }
       return null;
     } catch (e) {
-      print('🔥 ERROR Get Trip: $e');
+     
       return null;
     }
   }

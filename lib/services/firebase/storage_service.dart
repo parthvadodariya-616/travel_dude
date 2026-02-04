@@ -12,51 +12,6 @@ import '../../utils/helpers.dart';
 class StorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  // All upload methods are commented out as we're not using image uploads
-
-  /* 
-  // Upload profile image - DISABLED
-  Future<String?> uploadProfileImage(String userId, File imageFile) async {
-    try {
-      Helpers.log('Uploading profile image', tag: 'STORAGE');
-
-      final ref = _storage.ref().child('users/$userId/profile.jpg');
-      final uploadTask = ref.putFile(imageFile);
-
-      final snapshot = await uploadTask;
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      Helpers.log('Profile image uploaded', tag: 'STORAGE');
-      return downloadUrl;
-    } catch (e) {
-      Helpers.log('Error uploading profile image: $e', tag: 'STORAGE');
-      throw 'Failed to upload image';
-    }
-  }
-  */
-
-  /* 
-  // Upload trip image - DISABLED
-  Future<String?> uploadTripImage(String userId, String tripId, File imageFile) async {
-    try {
-      Helpers.log('Uploading trip image', tag: 'STORAGE');
-
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final ref = _storage.ref().child('trips/$userId/$tripId/$timestamp.jpg');
-      final uploadTask = ref.putFile(imageFile);
-
-      final snapshot = await uploadTask;
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      Helpers.log('Trip image uploaded', tag: 'STORAGE');
-      return downloadUrl;
-    } catch (e) {
-      Helpers.log('Error uploading trip image: $e', tag: 'STORAGE');
-      throw 'Failed to upload image';
-    }
-  }
-  */
-
   // Delete image - Keep for cleanup if needed
   Future<void> deleteImage(String imageUrl) async {
     try {

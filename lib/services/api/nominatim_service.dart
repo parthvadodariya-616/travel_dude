@@ -22,8 +22,6 @@ class NominatimService {
 
   Future<List<PlaceModel>> searchPlaces({required String query}) async {
     try {
-      print('🔍 [NOMINATIM] Searching for: $query');
-      
       final response = await _dio.get(
         AppConstants.nominatimBaseUrl,
         queryParameters: {
@@ -38,8 +36,6 @@ class NominatimService {
 
       if (response.statusCode == 200) {
         final List data = response.data;
-        print('✅ [NOMINATIM] Found ${data.length} results');
-        
         return data.map((json) {
           try {
             return PlaceModel.fromNominatimJson(json);
@@ -51,7 +47,6 @@ class NominatimService {
       }
       return [];
     } catch (e) {
-      print('🔴 [NOMINATIM ERROR]: $e');
       throw 'Failed to connect to search service.';
     }
   }
