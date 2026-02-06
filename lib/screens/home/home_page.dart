@@ -3,7 +3,7 @@
 import 'dart:async'; // Required for Timer
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_travel_planner/widgets/bottom_nav.dart';
+import 'package:travel_dude/widgets/bottom_nav.dart';
 import '../../models/place_model.dart';
 import '../../providers/place_provider.dart';
 import '../../utils/helpers.dart';
@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Smart Travel Planner',
+                    'Travel Dude',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: textMainColor),
                   ),
                   Container(
