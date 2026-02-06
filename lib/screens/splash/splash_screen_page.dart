@@ -20,7 +20,7 @@ class SplashScreen extends StatelessWidget {
             ),
             SizedBox(height: 24),
             Text(
-              'Smart Travel Planner',
+              'Travel Dude',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
