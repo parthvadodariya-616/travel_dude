@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_travel_planner/widgets/bottom_nav.dart';
+import 'package:travel_dude/widgets/bottom_nav.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firebase/firestore_service.dart';
