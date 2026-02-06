@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_travel_planner/widgets/bottom_nav.dart';
+import 'package:travel_dude/widgets/bottom_nav.dart';
 import '../../providers/trip_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/trip_card.dart';
