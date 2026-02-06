@@ -1,3 +1,3 @@
-# smart_travel_planner
+# travel_dude
 
 A new Flutter project.

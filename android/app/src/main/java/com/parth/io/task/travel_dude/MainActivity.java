@@ -1,4 +1,4 @@
-package com.parth.io.task.smart_travel_planner;
+package com.parth.io.task.travel_dude;
 
 import io.flutter.embedding.android.FlutterActivity;
 

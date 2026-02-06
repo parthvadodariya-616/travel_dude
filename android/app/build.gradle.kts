@@ -9,8 +9,8 @@ plugins {
 }
 
 android {
-    namespace = "com.parth.io.task.smart_travel_planner"
-    compileSdk = 36
+    namespace = "com.parth.io.task.travel_dude"
+    compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.parth.io.task.smart_travel_planner"
+        applicationId = "com.parth.io.task.travel_dude"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

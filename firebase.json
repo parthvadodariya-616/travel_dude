@@ -1,1 +1,22 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"smart-travel-planner-app-7015","appId":"1:849111399996:android:5bf509a2c8d8ba99598d39","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"smart-travel-planner-app-7015","configurations":{"android":"1:849111399996:android:5bf509a2c8d8ba99598d39","ios":"1:849111399996:ios:95c5ba7eedcc7ee3598d39"}}}}}}
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "smart-travel-planner-app-7015",
+                    "appId": "1:849111399996:android:06fb9a0360943389598d39",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "smart-travel-planner-app-7015",
+                    "configurations": {
+                        "android": "1:849111399996:android:06fb9a0360943389598d39",
+                        "ios": "1:849111399996:ios:a62dc688d34af329598d39"
+                    }
+                }
+            }
+        }
+    }
+}

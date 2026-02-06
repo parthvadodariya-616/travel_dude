@@ -8,18 +8,18 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:849111399996:android:5bf509a2c8d8ba99598d39",
+        "mobilesdk_app_id": "1:849111399996:android:06fb9a0360943389598d39",
         "android_client_info": {
-          "package_name": "com.parth.io.task.smart_travel_planner"
+          "package_name": "com.parth.io.task.travel_dude"
         }
       },
       "oauth_client": [
         {
-          "client_id": "849111399996-famfgp6mo6j1tu74frj7ra51cp2kb740.apps.googleusercontent.com",
+          "client_id": "849111399996-5j1rhiq8r2akvgp6j3qh0s8c2ss0hqum.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.parth.io.task.smart_travel_planner",
-            "certificate_hash": "aa230907554950490df50027b748d4ec1b179e7d"
+            "package_name": "com.parth.io.task.travel_dude",
+            "certificate_hash": "3f2f2414d983b6d0c282a10b885904e48f7f431e"
           }
         },
         {
