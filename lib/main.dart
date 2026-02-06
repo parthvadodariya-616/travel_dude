@@ -69,7 +69,7 @@ class MyApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-            title: 'Smart Travel Planner',
+            title: 'Travel Dude',
             debugShowCheckedModeBanner: false,
             // Use AppTheme if defined, otherwise fallback to manual ThemeData
             // Assuming AppTheme class exists in config/theme.dart based on imports

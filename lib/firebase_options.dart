@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBX64V_3teUPMCtjjbaMSPI0q6V-SmxRdk',
-    appId: '1:849111399996:android:5bf509a2c8d8ba99598d39',
+    appId: '1:849111399996:android:06fb9a0360943389598d39',
     messagingSenderId: '849111399996',
     projectId: 'smart-travel-planner-app-7015',
     databaseURL: 'https://smart-travel-planner-app-7015-default-rtdb.asia-southeast1.firebasedatabase.app',
@@ -60,14 +60,14 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyB_Tv1OQ5Wc5KTRk4qZ3AMS8tPObToyPHo',
-    appId: '1:849111399996:ios:95c5ba7eedcc7ee3598d39',
+    appId: '1:849111399996:ios:a62dc688d34af329598d39',
     messagingSenderId: '849111399996',
     projectId: 'smart-travel-planner-app-7015',
     databaseURL: 'https://smart-travel-planner-app-7015-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'smart-travel-planner-app-7015.firebasestorage.app',
-    androidClientId: '849111399996-famfgp6mo6j1tu74frj7ra51cp2kb740.apps.googleusercontent.com',
-    iosClientId: '849111399996-3qjjknbtsrf6dne0jgvtu35tsvk16aqg.apps.googleusercontent.com',
-    iosBundleId: 'com.parth.io.task.smartTravelPlanner',
+    androidClientId: '849111399996-5j1rhiq8r2akvgp6j3qh0s8c2ss0hqum.apps.googleusercontent.com',
+    iosClientId: '849111399996-c0qrj2o04mlqombigmrfmlj229kmcemp.apps.googleusercontent.com',
+    iosBundleId: 'com.parth.io.task.travelDude',
   );
 
 }
